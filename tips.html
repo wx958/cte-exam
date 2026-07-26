@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>天宁北常用话术</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--p:#1A56DB;--pl:#3B82F6;--ok:#059669;--warn:#D97706;--bg:#F3F4F6;--card:#fff;--t:#111827;--t2:#6B7280;--t3:#9CA3AF;--bd:#E5E7EB}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--t);font-size:14px;line-height:1.6}
+.header{background:linear-gradient(135deg,#1E3A8A 0%,#1A56DB 50%,#3B82F6 100%);padding:40px 20px 24px;text-align:center;color:#fff;position:relative}
+.header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%}
+.header h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.header p{font-size:.78rem;opacity:.75}
+.search{background:var(--card);margin:-16px 16px 0;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;gap:10px;align-items:center;position:relative;z-index:10}
+.search input{border:none;outline:none;font-size:.92rem;width:100%;color:var(--t)}
+.search input::placeholder{color:var(--t3)}
+.body{padding:12px 16px 24px;overflow-y:auto;height:calc(100% - 120px);-webkit-overflow-scrolling:touch}
+.section{margin-bottom:16px}
+.section-title{font-size:.82rem;font-weight:700;color:var(--p);margin-bottom:8px;display:flex;align-items:center;gap:6px;cursor:pointer;padding:10px 12px;background:var(--card);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.section-title:active{background:#EFF6FF}
+.section-title .icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.section-title .arrow{margin-left:auto;font-size:.7rem;color:var(--t3);transition:transform .2s}
+.section-title.open .arrow{transform:rotate(180deg)}
+.section-body{display:none;padding:0 4px}
+.section-body.show{display:block}
+.tip-card{background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative}
+.tip-card .label{font-size:.72rem;color:var(--t3);margin-bottom:6px;font-weight:600}
+.tip-card .content{font-size:.88rem;color:var(--t);line-height:1.7;white-space:pre-wrap}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--pl);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;font-weight:600;opacity:0;transition:opacity .2s}
+.tip-card:hover .copy-btn,.tip-card:active .copy-btn{opacity:1}
+.copy-btn:active{background:var(--p)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:.82rem;z-index:999;display:none}
+.toast.show{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.empty{text-align:center;padding:40px 0;color:var(--t3);font-size:.88rem}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 天宁北常用话术</h1>
+  <p>点击展开 → 一键复制</p>
+</div>
+
+<div class="search">
+  <span>🔍</span>
+  <input type="text" id="searchInput" placeholder="搜索话术关键词...">
+</div>
+
+<div class="body" id="container"></div>
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+var DATA=[
+{icon:"📝",title:"考试链接",tips:[
+{label:"有人问考试/题库",content:"智能云服务工程师考试题库：\n三级 https://wx958.github.io/cte-exam/3.html\n四级 https://wx958.github.io/cte-exam/4.html\n五级 https://wx958.github.io/cte-exam/5.html\n手机浏览器直接打开，支持套卷模式和自由模式"},
+]},
+{icon:"🔧",title:"装维指标",tips:[
+{label:"有人问装维指标有哪些",content:"装维5项核心指标：\n1. 故障修复及时率\n2. 16点前快修率\n3. 16点后快修率\n4. 48小时安装及时率\n5. 客户十分满意度"},
+{label:"有人问服务响应时限",content:"装机2小时响应/48小时竣工\n修障1小时响应/24小时完工\n催单30分钟响应"},
+{label:"有人问装维工单四不",content:"不满意、不履约、不及时、不彻底"},
+]},
+{icon:"📡",title:"FTTR安装",tips:[
+{label:"有人问FTTR安装规范",content:"FTTR安装要点：\n1. 能光则光\n2. 主从间距合规\n3. 光衰-8dB~-24dB\n4. 协同组网功能开启\n5. 必须上传：组网设计报告+测速记录+用户确认单+安装照片"},
+{label:"有人问FTTR交付材料",content:"组网设计报告、测速记录、用户确认单、安装照片，四项缺一不可"},
+]},
+{icon:"🎯",title:"营销政策",tips:[
+{label:"有人问暑促融合套餐",content:"暑促新装融合：239/209/169三档\n2000M三大优势：有线+5G-A+WIFI"},
+{label:"有人问商机转化政策",content:"89-189档赠30元/月\n189+档赠50元/月"},
+{label:"有人问小微签约激励",content:"小微签约激励200-400元/单"},
+]},
+{icon:"💰",title:"计件标准",tips:[
+{label:"有人问装移机计件",content:"基础计件标准：\n- 装移机10元\n- AC/AP无线内网10+3×25元\n- FTTR全光内网10+从猫数×100元\n- 监控室外版45元/室内版15元\n- 路由器门铃15元"},
+]},
+{icon:"📊",title:"薪酬相关",tips:[
+{label:"有人问业务绩效等级",content:"业务绩效等级：\n- 初级：积分目标600元/小微1500元，绩效1000元\n- 中级：积分目标900元/小微2500元，绩效1500元\n- 高级：积分目标1500元/小微3500元，绩效2000元\n综合完成率=积分完成率×0.6+小微营收完成率×0.2+积分流失管控×0.2"},
+{label:"有人问补贴",content:"熔接机补贴160元/月\n登高证20元/月\n电工证50元/月"},
+]},
+{icon:"🚀",title:"转型动作激励",tips:[
+{label:"有人问转型动作激励",content:"- 体外障碍纳管2元/单\n- 赋能复盘5-8元/单\n- 优秀案例50-80元/单\n- 自营自装固网5元/单、FTTR 10元/单\n- 企微吸粉45户/人，未达标考核300元"},
+]},
+{icon:"🏠",title:"二次屏改入户",tips:[
+{label:"有人问入户流程",content:"二次屏改入户六步法：\n1. 进门破冰\n2. 服务融冰\n3. 智屏演示\n4. 网络检测\n5. 比算逼单\n6. 成交交付"},
+{label:"有人问营销场景话术",content:"四个核心场景：\n- 家中有小孩→AI学习机\n- 家中有老人→AI陪伴机\n- 家中有宠物→远程监控\n- 年轻夫妻→家庭影院"},
+]},
+{icon:"📋",title:"随手一单",tips:[
+{label:"有人问随手一单规则",content:"派单：3天内欠费为主/障碍单1:1配置\n处理：用户在家促活/不在家贴条\n回单：水印相机拍照\n激励：上门贴条10分/单/回收终端10分/个/回收欠费10%封顶100分"},
+]},
+{icon:"⚠️",title:"风险防控",tips:[
+{label:"有人问必须审批场景",content:"必须审批场景：\n1. 同址宽带超3条\n2. 批量一拆一装\n3. 跨PON口更纤"},
+{label:"有人问终端管理",content:"终端管理规范：领用→使用→回收，产权归公司，谁使用谁负责，严禁外借"},
+]},
+{icon:"🎬",title:"尊享包",tips:[
+{label:"有人问尊享包体验",content:"电视端开通8步骤：\n条件：未订购PLUS包+4K机顶盒+每个账号仅限一次"},
+]},
+{icon:"⭐",title:"星级考评",tips:[
+{label:"有人问星级考评标准",content:"评估维度及分值：\n- 16点前快修及时率15分\n- 16点后快修及时率15分\n- 48小时安装及时率30分\n- 故障修复及时率20分\n- 客户十分满意度20分\n\n评级：A≥95/系数1.3、B 85-95/1.1、C 70-85/1.0、D<70/0.7"},
+]},
+];
+
+function render(filter){
+  var c=document.getElementById('container');
+  var h='';
+  DATA.forEach(function(sec,si){
+    var ftips=filter?sec.tips.filter(function(t){return t.label.includes(filter)||t.content.includes(filter)}):sec.tips;
+    if(filter&&ftips.length===0)return;
+    h+='<div class="section">';
+    h+='<div class="section-title'+(filter?' open':'')+'" onclick="toggle(this)"><span class="icon">'+sec.icon+'</span>'+sec.title+'<span class="arrow">▼</span></div>';
+    h+='<div class="section-body'+(filter?' show':'')+'">';
+    ftips.forEach(function(t){
+      h+='<div class="tip-card">';
+      h+='<div class="label">'+t.label+'</div>';
+      h+='<div class="content">'+t.content+'</div>';
+      h+='<button class="copy-btn" onclick="cp(this)">复制</button>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  if(!h)h='<div class="empty">没有找到匹配的话术</div>';
+  c.innerHTML=h;
+}
+
+function toggle(el){
+  el.classList.toggle('open');
+  var body=el.nextElementSibling;
+  body.classList.toggle('show');
+}
+
+function cp(btn){
+  var text=btn.parentElement.querySelector('.content').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(text)}
+  else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
+  var t=document.getElementById('toast');t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},1200);
+}
+
+document.getElementById('searchInput').addEventListener('input',function(e){render(e.target.value.trim())});
+
+render();
+</script>
+</body>
+</html>
