@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WeChat</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue','Microsoft YaHei',sans-serif;background:#ededed;display:flex;justify-content:center}
+.app{width:100%;max-width:1050px;height:100%;display:flex;position:relative;overflow:hidden;background:#ededed}
+
+/* ===== Desktop layout (width > 700px) ===== */
+@media(min-width:701px){
+  .sidebar{display:flex}
+  .contact-panel{display:flex;width:260px}
+  .chat-area{display:flex;flex:1}
+  .chat-area.hidden{display:flex}
+  .back-btn{display:none!important}
+  .contact-panel.hidden{display:flex}
+  .chat-header .ch-back{display:none!important}
+}
+
+/* ===== Mobile layout (width <= 700px) ===== */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .contact-panel{width:100%;display:flex;flex:1}
+  .contact-panel.hidden{display:none}
+  .chat-area{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;transform:translateX(100%);transition:transform .25s ease;z-index:10}
+  .chat-area.show{transform:translateX(0)}
+  .chat-area.hidden{display:flex;transform:translateX(100%)}
+  .chat-header .ch-back{display:flex!important}
+}
+
+/* Sidebar - nav icons */
+.sidebar{width:56px;background:#2e2e2e;flex-direction:column;align-items:center;padding-top:28px;gap:4px;user-select:none;flex-shrink:0}
+.sidebar .avatar{width:36px;height:36px;border-radius:6px;background:#555;margin-bottom:20px;cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sidebar .avatar svg{width:24px;height:24px;fill:#aaa}
+.sidebar .nav-item{width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.sidebar .nav-item:hover{background:#3e3e3e}
+.sidebar .nav-item.active{background:#3e3e3e}
+.sidebar .nav-item svg{width:22px;height:22px;fill:#888}
+.sidebar .nav-item.active svg{fill:#07c160}
+.sidebar .spacer{flex:1}
+
+/* Contact list panel */
+.contact-panel{flex-direction:column;background:#ededed;flex-shrink:0}
+.contact-panel .search-bar{padding:12px 12px 8px;background:#ededed}
+.contact-panel .search-bar .search-box{display:flex;align-items:center;background:#ddd;border-radius:4px;padding:7px 10px;gap:8px}
+.contact-panel .search-bar .search-box svg{width:16px;height:16px;fill:#888;flex-shrink:0}
+.contact-panel .search-bar .search-box input{background:none;border:none;outline:none;color:#333;font-size:14px;width:100%}
+.contact-panel .search-bar .search-box input::placeholder{color:#999}
+.contact-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.contact-list::-webkit-scrollbar{width:0}
+
+.contact-item{display:flex;align-items:center;padding:12px;gap:10px;cursor:pointer;transition:background .1s;background:#ededed;border-bottom:1px solid #ddd}
+.contact-item:active{background:#d5d5d5}
+.contact-item.active{background:#d5d5d5}
+.contact-item .c-avatar{width:44px;height:44px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.contact-item .c-info{flex:1;min-width:0}
+.contact-item .c-info .c-top{display:flex;justify-content:space-between;align-items:center}
+.contact-item .c-info .c-name{font-size:15px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact-item .c-info .c-time{font-size:11px;color:#999;flex-shrink:0;margin-left:8px}
+.contact-item .c-info .c-msg{font-size:13px;color:#999;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact-item .unread{min-width:18px;height:18px;background:#fa5151;border-radius:9px;font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+
+/* Chat area */
+.chat-area{flex-direction:column;background:#f5f5f5}
+.chat-header{height:50px;background:#ededed;display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0;border-bottom:1px solid #ddd}
+.chat-header .ch-left{display:flex;align-items:center;gap:8px}
+.chat-header .ch-back{display:none;align-items:center;gap:4px;cursor:pointer;color:#07c160;font-size:14px}
+.chat-header .ch-back svg{width:20px;height:20px;fill:#07c160}
+.chat-header .ch-name{font-size:16px;color:#333;font-weight:500}
+.chat-header .ch-actions{display:flex;gap:16px}
+.chat-header .ch-actions svg{width:20px;height:20px;fill:#888;cursor:pointer}
+
+/* Messages */
+.messages{flex:1;overflow-y:auto;padding:8px 12px 12px;-webkit-overflow-scrolling:touch}
+.messages::-webkit-scrollbar{width:0}
+
+.msg-row{display:flex;gap:8px;margin-bottom:14px;max-width:85%;animation:msgIn .2s ease}
+.msg-row.self{flex-direction:row-reverse;margin-left:auto}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{width:38px;height:38px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.msg-body{display:flex;flex-direction:column;gap:2px}
+.msg-row.self .msg-body{align-items:flex-end}
+.msg-name{font-size:11px;color:#999;padding:0 8px}
+.msg-bubble{padding:10px 12px;border-radius:6px;font-size:15px;line-height:1.5;color:#333;word-break:break-word;position:relative}
+.msg-row:not(.self) .msg-bubble{background:#fff}
+.msg-row.self .msg-bubble{background:#95ec69;color:#333}
+
+.time-divider{text-align:center;margin:12px 0;position:relative}
+.time-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#ddd}
+.time-divider span{background:#f5f5f5;padding:0 10px;font-size:11px;color:#999;position:relative;z-index:1}
+
+/* Input area */
+.input-area{background:#f5f5f5;padding:8px 12px;border-top:1px solid #ddd;flex-shrink:0}
+.input-toolbar{display:flex;gap:14px;margin-bottom:6px}
+.input-toolbar svg{width:22px;height:22px;fill:#888;cursor:pointer}
+.input-toolbar svg:active{fill:#555}
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.input-box{flex:1;min-height:36px;max-height:100px;background:#fff;border:none;border-radius:4px;outline:none;color:#333;font-size:15px;line-height:1.4;resize:none;padding:8px 10px;font-family:inherit}
+.input-box::placeholder{color:#bbb}
+.send-btn{padding:6px 14px;background:#07c160;color:#fff;border:none;border-radius:4px;font-size:14px;cursor:pointer;flex-shrink:0;min-width:50px}
+.send-btn:active{background:#06ad56}
+.send-btn:disabled{background:#ccc;color:#999}
+
+/* Emoji panel */
+.emoji-panel{display:none;background:#fff;border-radius:8px;padding:10px;width:calc(100% - 24px);max-width:340px;position:absolute;bottom:120px;left:12px;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);flex-wrap:wrap;gap:4px;max-height:180px;overflow-y:auto}
+.emoji-panel.show{display:flex}
+.emoji-panel span{font-size:26px;cursor:pointer;padding:4px;border-radius:4px;transition:background .1s}
+.emoji-panel span:active{background:#eee}
+
+/* Right click / long press menu */
+.ctx-menu{position:fixed;background:#fff;border-radius:8px;padding:6px 0;min-width:110px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:200;display:none}
+.ctx-menu.show{display:block}
+.ctx-menu-item{padding:10px 16px;font-size:14px;color:#333;cursor:pointer}
+.ctx-menu-item:active{background:#f0f0f0}
+.ctx-menu-item.danger{color:#fa5151}
+
+/* Empty state */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#bbb;background:#f5f5f5}
+.empty-state svg{width:60px;height:60px;fill:#ddd;margin-bottom:12px}
+.empty-state p{font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar (desktop only) -->
+  <div class="sidebar">
+    <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
+    <div class="nav-item active" title="聊天"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></div>
+    <div class="nav-item" title="通讯录"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+    <div class="nav-item" title="收藏"><svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"/></svg></div>
+    <div class="spacer"></div>
+    <div class="nav-item" title="设置"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
+  </div>
+
+  <!-- Contact List -->
+  <div class="contact-panel" id="contactPanel">
+    <div class="search-bar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" placeholder="搜索" id="searchInput">
+      </div>
+    </div>
+    <div class="contact-list" id="contactList"></div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area hidden" id="chatArea">
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+      <p>选择一个聊天开始</p>
+    </div>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-menu-item" data-action="copy">复制</div>
+  <div class="ctx-menu-item" data-action="forward">转发</div>
+  <div class="ctx-menu-item" data-action="quote">引用</div>
+  <div class="ctx-menu-item danger" data-action="delete">删除</div>
+</div>
+
+<script>
+const contacts = [
+  {id:1,name:'张利朋',avatar:'#5b8c5a',msgs:[
+    {from:'other',text:'今天红梅铁北的FTTR完成怎么样？',time:'09:12'},
+    {from:'self',text:'还在推进，目前完成率46.9%，离目标还差不少',time:'09:15'},
+    {from:'other',text:'加油，月底前要冲一下',time:'09:16'},
+  ],unread:1,lastTime:'09:16'},
+  {id:2,name:'陆锦文',avatar:'#4a7fb5',msgs:[
+    {from:'other',text:'陈哥，2000M融合那边有新单子吗？',time:'08:45'},
+    {from:'self',text:'有3单在走流程，预计明天能竣工',time:'08:50'},
+  ],unread:0,lastTime:'08:50'},
+  {id:3,name:'王响',avatar:'#b5544a',msgs:[
+    {from:'other',text:'下午开个碰头会，红梅铁北的指标过一下',time:'昨天'},
+    {from:'self',text:'好的，2点可以',time:'昨天'},
+    {from:'other',text:'行，叫上张刚丰一起',time:'昨天'},
+  ],unread:0,lastTime:'昨天'},
+  {id:4,name:'公司大群',avatar:'#7b5ea7',msgs:[
+    {from:'other',name:'李晨飞',text:'本月公众新增积分达成9200，还差4750',time:'10:30'},
+    {from:'other',name:'黄珂',text:'天宁北这边小微完成压力比较大',time:'10:32'},
+  ],unread:5,lastTime:'10:32'},
+  {id:5,name:'范晓磊',avatar:'#b5894a',msgs:[
+    {from:'other',text:'生态权益那边我这边完成率还可以',time:'昨天'},
+    {from:'self',text:'嗯，你那边83%了，继续保持',time:'昨天'},
+  ],unread:0,lastTime:'昨天'},
+  {id:6,name:'陈赞',avatar:'#4a8fb5',msgs:[
+    {from:'other',text:'智屏订单帮我确认下',time:'前天'},
+    {from:'self',text:'好的我看看',time:'前天'},
+  ],unread:0,lastTime:'前天'},
+  {id:7,name:'装维服务群',avatar:'#4ab589',msgs:[
+    {from:'other',name:'王云霄',text:'16点前快修率今天要盯一下',time:'07:50'},
+    {from:'other',name:'张叶丽',text:'收到',time:'07:55'},
+  ],unread:2,lastTime:'07:55'},
+  {id:8,name:'杨召成',avatar:'#b54a7b',msgs:[
+    {from:'other',text:'终端合约还差2个，有合适的单子推一下',time:'前天'},
+  ],unread:0,lastTime:'前天'},
+  {id:9,name:'天宁北管理群',avatar:'#5a8c8c',msgs:[
+    {from:'other',name:'翟路路',text:'本月小微考核标准确认了',time:'06:30'},
+    {from:'other',name:'范贺',text:'好的收到',time:'06:35'},
+  ],unread:8,lastTime:'06:35'},
+];
+
+let currentChat = null;
+const isMobile = () => window.innerWidth <= 700;
+
+function renderContacts(filter='') {
+  const list = document.getElementById('contactList');
+  list.innerHTML = '';
+  const filtered = contacts.filter(c => c.name.includes(filter));
+  filtered.forEach(c => {
+    const lastMsg = c.msgs[c.msgs.length-1];
+    const div = document.createElement('div');
+    div.className = 'contact-item' + (currentChat===c.id?' active':'');
+    div.innerHTML = `
+      <div class="c-avatar" style="background:${c.avatar}">${c.name[0]}</div>
+      <div class="c-info">
+        <div class="c-top">
+          <span class="c-name">${c.name}</span>
+          <span class="c-time">${c.lastTime}</span>
+        </div>
+        <div class="c-msg">${lastMsg?(lastMsg.name?lastMsg.name+': ':'')+lastMsg.text:''}</div>
+      </div>
+      ${c.unread?`<div class="unread">${c.unread}</div>`:''}
+    `;
+    div.onclick = () => openChat(c.id);
+    list.appendChild(div);
+  });
+}
+
+function openChat(id) {
+  currentChat = id;
+  const c = contacts.find(x=>x.id===id);
+  c.unread = 0;
+  renderContacts(document.getElementById('searchInput').value);
+  renderChat(c);
+  // Mobile: show chat area with animation
+  if(isMobile()){
+    document.getElementById('contactPanel').classList.add('hidden');
+    const ca = document.getElementById('chatArea');
+    ca.classList.remove('hidden');
+    requestAnimationFrame(()=>ca.classList.add('show'));
+  }
+}
+
+function closeChat() {
+  if(isMobile()){
+    const ca = document.getElementById('chatArea');
+    ca.classList.remove('show');
+    setTimeout(()=>{
+      ca.classList.add('hidden');
+      document.getElementById('contactPanel').classList.remove('hidden');
+    }, 250);
+  }
+  currentChat = null;
+  renderContacts(document.getElementById('searchInput').value);
+}
+
+function renderChat(c) {
+  const area = document.getElementById('chatArea');
+  area.innerHTML = `
+    <div class="chat-header">
+      <div class="ch-left">
+        <div class="ch-back" onclick="closeChat()">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          <span>返回</span>
+        </div>
+        <span class="ch-name">${c.name}</span>
+      </div>
+      <div class="ch-actions">
+        <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      </div>
+    </div>
+    <div class="messages" id="msgList"></div>
+    <div class="input-area" id="inputArea">
+      <div class="input-toolbar">
+        <svg viewBox="0 0 24 24" class="emoji-btn"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+      </div>
+      <div class="input-row">
+        <textarea class="input-box" id="inputBox" placeholder="输入消息..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn">发送</button>
+      </div>
+    </div>
+  `;
+  area.classList.remove('hidden');
+  renderMessages(c);
+  bindInputEvents(c);
+}
+
+function renderMessages(c) {
+  const list = document.getElementById('msgList');
+  if(!list) return;
+  list.innerHTML = '<div class="time-divider"><span>今天</span></div>';
+  c.msgs.forEach(m => {
+    appendMessage(list, m, c);
+  });
+  list.scrollTop = list.scrollHeight;
+}
+
+function appendMessage(list, m, c) {
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (m.from==='self'?' self':'');
+  const avatarBg = m.from==='self'?'#07c160':c.avatar;
+  const avatarText = m.from==='self'?'我':(m.name||c.name)[0];
+  const nameHtml = m.name ? `<div class="msg-name">${m.name}</div>` : '';
+  row.innerHTML = `
+    <div class="msg-avatar" style="background:${avatarBg}">${avatarText}</div>
+    <div class="msg-body">
+      ${nameHtml}
+      <div class="msg-bubble">${m.text}</div>
+    </div>
+  `;
+  // long press for context menu (mobile)
+  let timer;
+  row.querySelector('.msg-bubble').addEventListener('touchstart', e => {
+    timer = setTimeout(() => {
+      const touch = e.touches[0];
+      showCtxMenu(touch.clientX, touch.clientY, m, c);
+    }, 500);
+  });
+  row.querySelector('.msg-bubble').addEventListener('touchend', () => clearTimeout(timer));
+  row.querySelector('.msg-bubble').addEventListener('touchmove', () => clearTimeout(timer));
+  // right click (desktop)
+  row.querySelector('.msg-bubble').addEventListener('contextmenu', e => {
+    e.preventDefault();
+    showCtxMenu(e.clientX, e.clientY, m, c);
+  });
+  list.appendChild(row);
+}
+
+function bindInputEvents(c) {
+  const box = document.getElementById('inputBox');
+  const btn = document.getElementById('sendBtn');
+  const send = () => {
+    const text = box.value.trim();
+    if(!text) return;
+    c.msgs.push({from:'self',text,time:now()});
+    c.lastTime = now();
+    const list = document.getElementById('msgList');
+    appendMessage(list, {from:'self',text,time:now()}, c);
+    list.scrollTop = list.scrollHeight;
+    box.value = '';
+    box.style.height = '36px';
+    renderContacts(document.getElementById('searchInput').value);
+    // auto reply
+    setTimeout(()=>{
+      const replies = [
+        '收到，我看看','好的','马上处理','了解了',
+        '这个可以推进','我这边先协调一下','没问题',
+        '回头再聊','行，等我消息','嗯嗯','知道了',
+        '好的收到','我马上处理','这个我来跟',
+      ];
+      const reply = {from:'other',text:replies[Math.floor(Math.random()*replies.length)],time:now()};
+      c.msgs.push(reply);
+      c.lastTime = now();
+      if(currentChat===c.id){
+        appendMessage(list, reply, c);
+        list.scrollTop = list.scrollHeight;
+      }
+      renderContacts(document.getElementById('searchInput').value);
+    }, 600+Math.random()*1500);
+  };
+  btn.onclick = send;
+  // Enter to send on desktop, Shift+Enter for newline
+  box.onkeydown = e => {
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+  };
+  // Auto resize textarea
+  box.oninput = () => {
+    box.style.height = '36px';
+    box.style.height = Math.min(box.scrollHeight, 100) + 'px';
+  };
+  // Emoji
+  const emojiBtn = document.querySelector('.emoji-btn');
+  if(emojiBtn){
+    emojiBtn.onclick = e => {
+      e.stopPropagation();
+      let panel = document.querySelector('.emoji-panel');
+      if(panel){panel.remove();return;}
+      panel = document.createElement('div');
+      panel.className = 'emoji-panel show';
+      const emojis = ['😀','😂','🤣','😊','😍','🥰','😎','🤗','🤔','😮','😢','😡','👍','👏','🙏','💪','🎉','🔥','❤️','💯','✅','⭐','💬','📌','👋','🤝','😅','😎','🥳'];
+      emojis.forEach(em => {
+        const s = document.createElement('span');
+        s.textContent = em;
+        s.onclick = ev => {ev.stopPropagation();box.value+=em;box.focus();panel.remove();};
+        panel.appendChild(s);
+      });
+      const inputArea = document.getElementById('inputArea');
+      inputArea.style.position = 'relative';
+      inputArea.appendChild(panel);
+    };
+  }
+}
+
+function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+
+function showCtxMenu(x,y,msg,c){
+  const menu=document.getElementById('ctxMenu');
+  menu.style.left=x+'px';menu.style.top=y+'px';menu.classList.add('show');
+  menu.onclick=e=>{
+    const item=e.target.closest('.ctx-menu-item');
+    if(!item)return;
+    const action=item.dataset.action;
+    if(action==='copy'){navigator.clipboard?.writeText(msg.text);}
+    else if(action==='delete'){
+      const idx=c.msgs.indexOf(msg);
+      if(idx>-1){c.msgs.splice(idx,1);renderMessages(c);}
+    }
+    menu.classList.remove('show');
+  };
+}
+
+document.addEventListener('click',()=>{
+  document.getElementById('ctxMenu').classList.remove('show');
+  const p=document.querySelector('.emoji-panel');if(p)p.remove();
+});
+
+document.getElementById('searchInput').addEventListener('input',e=>{renderContacts(e.target.value);});
+
+// Handle resize
+window.addEventListener('resize',()=>{
+  if(!isMobile()){
+    document.getElementById('contactPanel').classList.remove('hidden');
+    document.getElementById('chatArea').classList.remove('hidden','show');
+  }
+});
+
+// Init
+renderContacts();
+</script>
+</body>
+</html>
