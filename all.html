@@ -33,6 +33,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 /* ===== 设置页 ===== */
 .setup{justify-content:center;align-items:center;padding:20px;padding-bottom:calc(20px + var(--safe-b));background:var(--bg)}
 .card{background:var(--card);border-radius:20px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.page{overflow-y:auto}
 .card h2{margin-bottom:24px;text-align:center;font-size:1.15rem;font-weight:700;color:var(--t)}
 .fg{margin-bottom:16px}
 .fg label{display:block;font-size:.76rem;color:var(--t2);margin-bottom:7px;font-weight:600;letter-spacing:.3px}
@@ -107,6 +108,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .rt{width:100%;margin-top:12px;border-collapse:separate;border-spacing:0;font-size:.78rem;overflow:hidden;border-radius:12px;border:1px solid var(--bd)}
 .rt th{background:#F1F5F9;color:var(--t2);font-weight:600;padding:10px 8px;text-align:left}
 .rt td{padding:10px 8px;border-top:1px solid var(--bd)}
+
+.set-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.set-card{padding:14px 10px;border:1.5px solid var(--bd);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;background:var(--card)}
+.set-card:hover{border-color:var(--p);background:#EEF2FF}
+.set-num{font-weight:700;font-size:.95rem;color:var(--t)}
+.set-info{font-size:.72rem;color:var(--t2);margin-top:3px}
 </style>
 </head>
 <body>
@@ -121,6 +128,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   </div>
 </div>
 
+<div class="page" id="pgSet">
+  <div class="setup">
+    <div class="card">
+      <h2 id="setTitle">选择套卷</h2>
+      <p id="setSub" style="font-size:.78rem;color:var(--t2);margin:2px 0 6px">--</p>
+      <div class="fg"><label>考生姓名</label><input id="sNset" type="text" placeholder="请输入姓名" /></div>
+      <p style="font-size:.76rem;color:var(--t2);margin-bottom:14px;line-height:1.6">每套固定<b id="setCfg"></b>题（<span id="setCfgD"></span>），同一套卷题目固定，共10套可循环。</p>
+      <div class="set-grid" id="setGrid"></div>
+      <button class="btn-g" onclick="goFree()" style="margin-top:14px;background:#fff;color:var(--p);border:1.5px solid var(--p)">自由组卷（自选题型/数量）</button>
+      <button class="btn-back" onclick="showPage('pg1')" style="width:100%;margin-top:12px">返回首页</button>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="pg2">
   <div class="setup">
     <div class="card">
@@ -130,7 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="fg"><label>题目数量</label><select id="sC"><option value="20">20题</option><option value="30">30题</option><option value="50">50题</option><option value="100">100题</option><option value="0">全部题目</option></select></div>
       <div class="fg"><label>考试时长</label><select id="sM"><option value="60" selected>60分钟</option><option value="30">30分钟</option><option value="15">15分钟</option><option value="0">不限时</option></select></div>
       <button class="btn-g" onclick="go()">开始答题</button>
-      <button class="btn-back" onclick="showPage('pg1')" style="width:100%;margin-top:10px">← 返回首页</button>
+      <button class="btn-back" onclick="showPage('pgSet')" style="width:100%;margin-top:10px">← 返回套卷选择</button>
     </div>
   </div>
 </div>
@@ -160,7 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="result">
     <div class="card rc">
       <h2 style="margin-bottom:4px;font-size:1.15rem">考试结果</h2>
-      <p style="color:var(--t2);font-size:.76rem;margin-bottom:16px">装维安全作业考试 | <span id="rN">--</span></p>
+      <p style="color:var(--t2);font-size:.76rem;margin-bottom:16px"><span id="rExam">--</span> | <span id="rN">--</span></p>
       <div class="sr"><svg width="130" height="130"><circle cx="65" cy="65" r="56" stroke="#E2E8F0" stroke-width="10" fill="none"/><circle id="scC" cx="65" cy="65" r="56" stroke="var(--p)" stroke-width="10" fill="none" stroke-dasharray="352" stroke-dashoffset="352" stroke-linecap="round"/></svg><div class="sv" id="scV">0</div></div>
       <div class="ri"><div><b id="rC" style="color:var(--ok)">0</b><span>正确</span></div><div><b id="rW" style="color:var(--ng)">0</b><span>错误</span></div><div><b id="rU" style="color:var(--t2)">0</b><span>未答</span></div></div>
       <div id="rD"></div>
@@ -234,18 +255,77 @@ var DB_UNUSED=[
 
 var QS=[],ci=0,ua={},tm=null,tl=0,done=false,uName='';
 
+
+// 套卷配置: 每套100题,按各库题型实际占比动态计算
+var SCFG_TOTAL=100;
+var SCFG={};
+['L3','L4','L5','SAFE'].forEach(function(k){
+  var t=EXAMS[k].types;
+  var s=t.single||0,m=t.multi||0,j=t.judge||0,f=t.fill||0;
+  var tot=s+m+j+f;
+  var ps=Math.round(s/tot*100),pm=Math.round(m/tot*100),pj=Math.round(j/tot*100),pf=f>0?Math.round(f/tot*100):0;
+  var sum=ps+pm+pj+pf;
+  if(sum!==100){pj+=(100-sum);} // 修正到100
+  SCFG[k]={s:ps,m:pm,j:pj,f:pf};
+});
+
+function seedShuf(arr,s){
+  var a=arr.slice(),r=function(){s=(s*9301+49297)%233280;return s/233280;};
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+function mkSet(sn){
+  var db=EXAM_DB[curExam];
+  var sg=db.filter(function(q){return q.type==='single'});
+  var mg=db.filter(function(q){return q.type==='multi'});
+  var jg=db.filter(function(q){return q.type==='judge'});
+  var fg=db.filter(function(q){return q.type==='fill'});
+  var cf=SCFG[curExam];
+  sg=seedShuf(sg,sn*1000+7);mg=seedShuf(mg,sn*1000+13);jg=seedShuf(jg,sn*1000+19);fg=seedShuf(fg,sn*1000+23);
+  var res=[];
+  res=res.concat(sg.slice(0,cf.s));res=res.concat(mg.slice(0,cf.m));res=res.concat(jg.slice(0,cf.j));
+  if(cf.f>0)res=res.concat(fg.slice(0,cf.f));
+  res=seedShuf(res,sn*1000+97);
+  return res;
+}
+
+function pickSet(sn){
+  var nm=document.getElementById('sNset').value.trim();
+  if(!nm){document.getElementById('sNset').style.borderColor='var(--ng)';document.getElementById('sNset').focus();return;}
+  uName=nm;
+  document.getElementById('pgN').textContent='考生: '+uName+' | '+EXAMS[curExam].name+' 第'+sn+'套';
+  QS=mkSet(sn);tl=60*60;
+  showPage('pg3');rQ();rSh();
+  if(tl>0){uTm();tm=setInterval(function(){tl--;if(tl<=0){clearInterval(tm);sub();return;}uTm();},1000);}
+}
+
 var curExam=null;
 
-function pickExam(k){
-  curExam=k;
-  var ex=EXAMS[k];
-  document.getElementById('examTitle').textContent=ex.name;
+function goFree(){
+  var ex=EXAMS[curExam];
   document.getElementById('sT').innerHTML='<option value="all">全部题型</option>'
     +(ex.types.single?'<option value="single">仅单选题 ('+ex.types.single+'题)</option>':'')
     +(ex.types.multi?'<option value="multi">仅多选题 ('+ex.types.multi+'题)</option>':'')
     +(ex.types.fill?'<option value="fill">仅填空题 ('+ex.types.fill+'题)</option>':'')
     +(ex.types.judge?'<option value="judge">仅判断题 ('+ex.types.judge+'题)</option>':'');
+  document.getElementById('examTitle').textContent=ex.name;
   showPage('pg2');
+}
+
+function pickExam(k){
+  curExam=k;
+  var ex=EXAMS[k];
+  document.getElementById('examTitle').textContent=ex.name;
+  document.getElementById('setSub').textContent=ex.name+' · 共'+ex.total+'题';
+  var cf=SCFG[k];
+  document.getElementById('setCfg').textContent='100';
+  document.getElementById('setCfgD').textContent=cf.s+'单选 + '+cf.m+'多选'+(cf.f>0?' + '+cf.f+'填空':'')+' + '+cf.j+'判断';
+  // 渲染套卷按钮(10套)
+  var h='';
+  for(var s=1;s<=10;s++){h+='<div class="set-card" onclick="pickSet('+s+')"><div class="set-num">第'+s+'套</div><div class="set-info">'+SCFG_TOTAL+'题 · 60分钟</div></div>';}
+  document.getElementById('setGrid').innerHTML=h;
+  showPage('pgSet');
 }
 
 function go(){
@@ -364,6 +444,7 @@ function sub(){
   });
   var sc=Math.round(cr/QS.length*100);
   showPage('pg4');
+  document.getElementById('rExam').textContent=EXAMS[curExam]?EXAMS[curExam].name:'';
   document.getElementById('rN').textContent=uName;
   document.getElementById('scV').textContent=sc;
   document.getElementById('rC').textContent=cr;
