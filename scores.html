@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考试完成汇总 | 中国电信</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+    color: #1f2d3d;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center;
+    padding: 36px 20px 30px;
+    background: linear-gradient(135deg, #1e6bff 0%, #0b46b8 100%);
+    border-radius: 20px;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(30, 107, 255, 0.25);
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 26px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .header p { font-size: 14px; opacity: 0.9; }
+  .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .stat-card .num { font-size: 28px; font-weight: 800; color: #1e6bff; }
+  .stat-card .label { font-size: 12px; color: #7a8ba6; margin-top: 4px; }
+  .stat-card.green .num { color: #00b578; }
+  .stat-card.orange .num { color: #ff9c00; }
+  .stat-card.purple .num { color: #7b5cff; }
+
+  .section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px; height: 18px;
+    background: #1e6bff;
+    border-radius: 2px;
+  }
+
+  .exam-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #f6f9ff 0%, #eef3ff 100%);
+    border: 1px solid #dbe6ff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .exam-banner .info h3 { font-size: 16px; color: #1f2d3d; }
+  .exam-banner .info span { font-size: 12px; color: #7a8ba6; }
+  .score-badge {
+    background: linear-gradient(135deg, #00b578, #00d68f);
+    color: #fff;
+    font-weight: 800;
+    font-size: 22px;
+    border-radius: 12px;
+    padding: 8px 16px;
+    min-width: 80px;
+    text-align: center;
+  }
+  .score-badge.pass { background: linear-gradient(135deg, #00b578, #00d68f); }
+  .score-badge .sub { font-size: 11px; font-weight: 400; display: block; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: #f5f8ff;
+    color: #4a5b73;
+    font-weight: 600;
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 2px solid #e3ebff;
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 8px;
+    border-bottom: 1px solid #f0f3f8;
+    color: #33475b;
+  }
+  tbody tr:hover { background: #f8fbff; }
+  .score-100 {
+    display: inline-block;
+    background: #e6fff5;
+    color: #00a06a;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 2px 10px;
+  }
+  .channel-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .channel-desktop { background: #eef3ff; color: #1e6bff; }
+  .channel-wechat { background: #f0fdf4; color: #00b578; }
+  .status-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #e6f7ff; color: #0090d8; }
+
+  .footer { text-align: center; font-size: 12px; color: #9aabc2; margin-top: 30px; }
+  .footer a { color: #1e6bff; text-decoration: none; }
+  .search-box {
+    margin-bottom: 14px;
+    display: flex;
+    gap: 8px;
+  }
+  .search-box input {
+    flex: 1;
+    border: 1px solid #dbe6ff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    background: #f8fbff;
+  }
+  .search-box input:focus { border-color: #1e6bff; background: #fff; }
+  @media (max-width: 640px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .header h1 { font-size: 21px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📋 考试完成汇总</h1>
+    <p>中国电信常州分公司 · 安全作业培训考试记录</p>
+    <span class="badge">数据更新至 2026-09-30</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num">31</div>
+      <div class="label">总考生人数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">32</div>
+      <div class="label">总考试场次</div>
+    </div>
+    <div class="stat-card green">
+      <div class="num">100%</div>
+      <div class="label">满分率</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="num">100</div>
+      <div class="label">最高分</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">近期考试动态</div>
+    <div class="exam-banner">
+      <div class="info">
+        <h3>网信安全大讲堂（数据安全专题）结业考试</h3>
+        <span>王响 W0092996@JS · 2026-09-30 · 及格线70分</span>
+      </div>
+      <div class="score-badge pass">95<span class="sub">及格 ✓</span></div>
+    </div>
+    <div class="exam-banner">
+      <div class="info">
+        <h3>装维作业安全考试（批量代考）</h3>
+        <span>31人 / 32场 · 2026-09-27 ~ 09-28 · 全部100分</span>
+      </div>
+      <div class="score-badge pass">100<span class="sub">满分 ✓</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">装维作业安全考试 · 成绩明细</div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 搜索姓名 / 工号..." oninput="filterTable()">
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>姓名</th>
+            <th>工号</th>
+            <th>成绩</th>
+            <th>完成时间</th>
+            <th>渠道</th>
+            <th>考试日期</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>惠海波</td><td>W0092997@JS</td><td><span class="score-100">100</span></td><td>14:00</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>2</td><td>张伟</td><td>W0001435@JS</td><td><span class="score-100">100</span></td><td>14:16</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>3</td><td>丁晓江</td><td>W0092103@JS</td><td><span class="score-100">100</span></td><td>14:31</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>4</td><td>王响</td><td>W0092996@JS</td><td><span class="score-100">100</span></td><td>14:45</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>5</td><td>赵丽飞</td><td>W3071690@JS</td><td><span class="score-100">100</span></td><td>15:18</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>6</td><td>陈清</td><td>W0088256@JS</td><td><span class="score-100">100</span></td><td>15:46</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>7</td><td>蔡振光</td><td>W0103731@JS</td><td><span class="score-100">100</span></td><td>15:54</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-27</td></tr>
+          <tr><td>8</td><td>张年军</td><td>W0101717@JS</td><td><span class="score-100">100</span></td><td>16:06</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>9</td><td>张永峰</td><td>W1502275@JS</td><td><span class="score-100">100</span></td><td>16:45</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>10</td><td>李晨飞</td><td>W0299891@JS</td><td><span class="score-100">100</span></td><td>17:10</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>11</td><td>李帅</td><td>W0436737@JS</td><td><span class="score-100">100</span></td><td>17:43</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>12</td><td>黄珂</td><td>W0000422@JS</td><td><span class="score-100">100</span></td><td>17:52</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>13</td><td>刘金方</td><td>W0299873@JS</td><td><span class="score-100">100</span></td><td>18:02</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-27</td></tr>
+          <tr><td>14</td><td>管建武</td><td>W0420182@JS</td><td><span class="score-100">100</span></td><td>09:05</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>15</td><td>谢有刚</td><td>W0094187@JS</td><td><span class="score-100">100</span></td><td>09:15</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>16</td><td>奚正锋</td><td>W8405369@JS</td><td><span class="score-100">100</span></td><td>10:50</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>17</td><td>吴辰贇</td><td>W0907431@JS</td><td><span class="score-100">100</span></td><td>11:00</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>18</td><td>王梦阳</td><td>W8477247@JS</td><td><span class="score-100">100</span></td><td>11:09</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>19</td><td>卞明阳</td><td>W0982831@JS</td><td><span class="score-100">100</span></td><td>11:14</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>20</td><td>杨道林</td><td>W0101548@JS</td><td><span class="score-100">100</span></td><td>11:20</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>21</td><td>胡双</td><td>W8448881@JS</td><td><span class="score-100">100</span></td><td>11:25</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>22</td><td>单长兵</td><td>W0094183@JS</td><td><span class="score-100">100</span></td><td>11:29</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>23</td><td>候君万</td><td>W0104245@JS</td><td><span class="score-100">100</span></td><td>11:35</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>24</td><td>陈赞</td><td>W0299890@JS</td><td><span class="score-100">100</span></td><td>09:31</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-28</td></tr>
+          <tr><td>25</td><td>张刚丰</td><td>W0299842@JS</td><td><span class="score-100">100</span></td><td>10:05</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-28</td></tr>
+          <tr><td>26</td><td>王凯</td><td>W9562480@JS</td><td><span class="score-100">100</span></td><td>13:27</td><td><span class="channel-tag channel-wechat">企微</span></td><td>09-28</td></tr>
+          <tr><td>27</td><td>陆锦文</td><td>W9304952@JS</td><td><span class="score-100">100</span></td><td>12:16</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>28</td><td>杨召成</td><td>W0114344@JS</td><td><span class="score-100">100</span></td><td>12:24</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>29</td><td>王靖锋</td><td>W0358194@JS</td><td><span class="score-100">100</span></td><td>15:00</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>30</td><td>居志杰</td><td>W9427193@JS</td><td><span class="score-100">100</span></td><td>15:17</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+          <tr><td>31</td><td>徐翔</td><td>W0084044@JS</td><td><span class="score-100">100</span></td><td>16:32</td><td><span class="channel-tag channel-desktop">桌面</span></td><td>09-28</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    中国电信常州分公司 · 数据统计 <br>
+    <a href="https://wx958.github.io/cte-exam/all.html">📚 考试题库总库</a> ·
+    <a href="https://wx958.github.io/cte-exam/safety.html">🔧 装维安全题库</a>
+  </div>
+</div>
+
+<script>
+function filterTable() {
+  var input = document.getElementById('searchInput');
+  var filter = input.value.toLowerCase();
+  var table = document.getElementById('scoreTable');
+  var rows = table.getElementsByTagName('tr');
+  for (var i = 1; i < rows.length; i++) {
+    var text = rows[i].textContent.toLowerCase();
+    rows[i].style.display = text.indexOf(filter) > -1 ? '' : 'none';
+  }
+}
+</script>
+</body>
+</html>
